@@ -1,313 +1,410 @@
-# Trust Wallet Flutter
+# USDT Balance API
 
-A comprehensive Flutter wrapper for Trust Wallet Core with support for BIP-39 mnemonic operations, HD wallet key derivation, and Ethereum ERC-20 token transaction signing.
+A production-ready FastAPI service for querying USDT balances across multiple blockchain networks including Ethereum (ERC-20), Tron (TRC-20), and Solana (SPL).
 
 ## Features
 
-- ✅ **BIP-39 Mnemonic Support**: Create and validate mnemonic phrases with customizable entropy strength
-- ✅ **HD Wallet Key Derivation**: Derive Ethereum private keys at path `m/44'/60'/0'/0/0`
-- ✅ **Ethereum Address Generation**: Generate Ethereum addresses from private keys
-- ✅ **ERC-20 Token Signing**: Sign USDT and other ERC-20 token transfers
-- ✅ **Production-Ready**: Comprehensive error handling and memory management
-- ✅ **Cross-Platform**: Support for Android, iOS, and Desktop platforms
-- ✅ **Type-Safe**: Full Dart type safety with comprehensive documentation
+- ✅ **Multi-chain support**: Query USDT balances across Ethereum, Tron, and Solana
+- ✅ **Concurrent queries**: Fetch balances from all chains simultaneously
+- ✅ **Address validation**: Automatic validation for each supported chain format
+- ✅ **Robust error handling**: Graceful handling of individual chain failures
+- ✅ **Dependency injection**: Clean architecture with injected blockchain clients
+- ✅ **Retry logic**: Automatic retry with exponential backoff for RPC failures
+- ✅ **Comprehensive logging**: Detailed logging for monitoring and debugging
+- ✅ **Production-ready**: Docker support, health checks, and monitoring endpoints
+- ✅ **OpenAPI documentation**: Interactive API documentation with Swagger UI
+
+## Supported Networks
+
+| Chain | Token Type | Contract/Mint Address | Decimals |
+|-------|------------|-----------------------|----------|
+| Ethereum | ERC-20 | `0xdAC17F958D2ee523a2206206994597C13D831ec7` | 6 |
+| Tron | TRC-20 | `TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t` | 6 |
+| Solana | SPL | `Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB` | 6 |
 
 ## Installation
 
 ### Prerequisites
 
-1. **Trust Wallet Core Library**: Download the appropriate native library for your platform:
-   - Android: `libTrustWalletCore.so`
-   - iOS: `TrustWalletCore.framework`
-   - Linux: `libTrustWalletCore.so`
-   - macOS: `libTrustWalletCore.dylib`
-   - Windows: `TrustWalletCore.dll`
+- Python 3.11+
+- Required API keys for blockchain RPC endpoints
 
-2. **Add to pubspec.yaml**:
-```yaml
-dependencies:
-  flutter:
-    sdk: flutter
-  ffi: ^2.0.2
-  path: ^1.8.3
-  hex: ^0.2.0
-  crypto: ^3.0.3
-  convert: ^3.1.1
+### Setup
+
+1. **Clone the repository:**
+```bash
+git clone <repository-url>
+cd usdt-balance-api
 ```
 
-### Platform-Specific Setup
+2. **Install dependencies:**
+```bash
+pip install -r requirements.txt
+```
 
-#### Android
-1. Place `libTrustWalletCore.so` in `android/app/src/main/jniLibs/arm64-v8a/`
-2. Add to `android/app/build.gradle`:
-```gradle
-android {
-    packagingOptions {
-        pickFirst '**/libTrustWalletCore.so'
-    }
+3. **Configure environment:**
+```bash
+cp .env.example .env
+# Edit .env with your API keys and configuration
+```
+
+4. **Start the server:**
+```bash
+python run.py
+```
+
+## Configuration
+
+### Environment Variables
+
+Create a `.env` file based on `.env.example`:
+
+```env
+# Required: Blockchain RPC endpoints
+ETHEREUM_RPC_ENDPOINT=https://mainnet.infura.io/v3/YOUR_API_KEY
+SOLANA_RPC_ENDPOINT=https://api.mainnet-beta.solana.com
+
+# Optional: Server configuration
+HOST=0.0.0.0
+PORT=8000
+LOG_LEVEL=INFO
+RPC_TIMEOUT=30
+```
+
+### API Keys
+
+You'll need API keys for:
+- **Ethereum**: [Infura](https://infura.io/) or [Alchemy](https://alchemy.com/)
+- **Tron**: Uses public endpoints (no key required)
+- **Solana**: Uses public endpoints (no key required)
+
+## API Endpoints
+
+### Main Endpoint
+
+#### `GET /balances/{address}`
+
+Get USDT balances for a given address across all supported chains.
+
+**Parameters:**
+- `address` (path): Cryptocurrency address to query
+
+**Response:**
+```json
+{
+  "address": "0x742d35Cc6634C0532925a3b8D3A9B4C0A7e6d82b",
+  "balances": [
+    {"chain": "ethereum", "balance": "1000.000000"},
+    {"chain": "tron", "balance": "500.000000"},
+    {"chain": "solana", "balance": "250.000000"}
+  ]
 }
 ```
 
-#### iOS
-1. Add `TrustWalletCore.framework` to your iOS project
-2. Ensure it's linked in Build Phases → Link Binary With Libraries
+**Status Codes:**
+- `200`: Success
+- `400`: Invalid address format
+- `502`: All blockchain services unavailable
+- `500`: Internal server error
 
-#### Desktop
-1. Place the appropriate library file in the same directory as your executable
-2. For Linux/macOS, you may need to set `LD_LIBRARY_PATH` or `DYLD_LIBRARY_PATH`
+### Utility Endpoints
 
-## Basic Usage
+#### `GET /balances/health`
+Check blockchain client connection status.
 
-### Initialize the Wallet
+#### `GET /balances/supported-chains`
+Get information about supported blockchain networks.
 
-```dart
-import 'package:trust_wallet_flutter/trust_wallet_flutter.dart';
+#### `GET /health`
+Basic API health check.
 
-void main() {
-  final wallet = TWallet();
-  
-  // Your code here
-  
-  // Don't forget to dispose when done
-  wallet.dispose();
+#### `GET /`
+API information and available endpoints.
+
+## Usage Examples
+
+### Using cURL
+
+```bash
+# Get USDT balance for Ethereum address
+curl "http://localhost:8000/balances/0x742d35Cc6634C0532925a3b8D3A9B4C0A7e6d82b"
+
+# Get USDT balance for Tron address
+curl "http://localhost:8000/balances/TRX9rKKSGdyWS11jGPGJPw7G2HVpwfcNTL"
+
+# Get USDT balance for Solana address
+curl "http://localhost:8000/balances/11111111111111111111111111111112"
+
+# Check API health
+curl "http://localhost:8000/health"
+```
+
+### Using Python
+
+```python
+import httpx
+import asyncio
+
+async def get_usdt_balance(address: str):
+    async with httpx.AsyncClient() as client:
+        response = await client.get(f"http://localhost:8000/balances/{address}")
+        return response.json()
+
+# Example usage
+balance = asyncio.run(get_usdt_balance("0x742d35Cc6634C0532925a3b8D3A9B4C0A7e6d82b"))
+print(balance)
+```
+
+### Using JavaScript
+
+```javascript
+async function getUsdtBalance(address) {
+    const response = await fetch(`http://localhost:8000/balances/${address}`);
+    return await response.json();
 }
+
+// Example usage
+getUsdtBalance("0x742d35Cc6634C0532925a3b8D3A9B4C0A7e6d82b")
+    .then(balance => console.log(balance));
 ```
 
-### Create a New Wallet
+## Running the API
 
-```dart
-// Create a new BIP-39 mnemonic (12 words by default)
-final mnemonic = wallet.createMnemonic();
-print('Generated mnemonic: $mnemonic');
+### Development Mode
 
-// Create with different strength (24 words)
-final mnemonic24 = wallet.createMnemonic(strength: 256);
-print('24-word mnemonic: $mnemonic24');
+```bash
+# Start with auto-reload
+python run.py --reload
 
-// Derive Ethereum private key
-final privateKey = wallet.deriveEthereumPrivateKey(mnemonic);
-print('Private key: $privateKey');
+# Start with debug logging
+python run.py --log-level debug
 
-// Get Ethereum address
-final address = wallet.getEthereumAddress(privateKey);
-print('Address: $address');
+# Start on different port
+python run.py --port 8080
 ```
 
-### Import Existing Wallet
+### Production Mode
 
-```dart
-const existingMnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about';
+```bash
+# Start with production settings
+python run.py --host 0.0.0.0 --port 8000
 
-// Validate and import mnemonic
-final isValid = wallet.importMnemonic(existingMnemonic);
-print('Mnemonic is valid: $isValid');
-
-// Derive keys from imported mnemonic
-final privateKey = wallet.deriveEthereumPrivateKey(existingMnemonic);
-final address = wallet.getEthereumAddress(privateKey);
+# Or use uvicorn directly
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
 ```
 
-### Sign ERC-20 Token Transfer
+### Docker
 
-```dart
-// Sign USDT transfer
-final signedTx = wallet.signErc20Transfer(
-  privateKeyHex: privateKey,
-  toAddress: '0x742d35Cc6634C0532925a3b8D3A9B4C0A7e6d82b',
-  amount: '1000000', // 1 USDT (6 decimals)
-  gasPrice: '20000000000', // 20 Gwei
-  gasLimit: '60000',
-  nonce: '0',
-  contractAddress: TokenContracts.usdtEthereum, // Optional, defaults to USDT
-);
+```bash
+# Build image
+docker build -t usdt-balance-api .
 
-print('Signed transaction: $signedTx');
-```
-
-## Production Usage
-
-### Advanced Wallet Management
-
-```dart
-import 'package:trust_wallet_flutter/trust_wallet_flutter.dart';
-
-class MyWalletService {
-  final _productionWallet = ProductionWalletExample();
-  
-  Future<Map<String, String>> createWallet() async {
-    return await _productionWallet.createNewWallet(
-      strength: 256, // 24 words for extra security
-      passphrase: 'optional-passphrase',
-    );
-  }
-  
-  Future<String> sendUSDT({
-    required String privateKey,
-    required String recipient,
-    required double amount,
-    required double gasPriceGwei,
-    required String nonce,
-  }) async {
-    return await _productionWallet.signTokenTransfer(
-      privateKey: privateKey,
-      tokenContract: TokenContracts.usdtEthereum,
-      recipient: recipient,
-      amount: WalletUtils.usdtToWei(amount),
-      gasPrice: WalletUtils.gweiToWei(gasPriceGwei),
-      gasLimit: GasLimits.erc20Transfer,
-      nonce: nonce,
-    );
-  }
-  
-  void dispose() {
-    _productionWallet.dispose();
-  }
-}
-```
-
-### Batch Operations
-
-```dart
-// Sign multiple transactions
-final transactions = [
-  {
-    'privateKey': privateKey1,
-    'tokenContract': TokenContracts.usdtEthereum,
-    'recipient': '0x742d35Cc6634C0532925a3b8D3A9B4C0A7e6d82b',
-    'amount': '1000000',
-    'gasPrice': '20000000000',
-    'gasLimit': '60000',
-    'nonce': '0',
-  },
-  // Add more transactions...
-];
-
-final signedTxs = await productionWallet.signMultipleTransfers(transactions);
-```
-
-## Utility Functions
-
-### Token Amount Conversions
-
-```dart
-// Convert USDT to wei (6 decimals)
-final usdtWei = WalletUtils.usdtToWei(1.5); // "1500000"
-
-// Convert wei to USDT
-final usdtAmount = WalletUtils.weiToUsdt('1500000'); // 1.5
-
-// Convert Gwei to wei
-final weiAmount = WalletUtils.gweiToWei(20.0); // "20000000000"
-```
-
-### Blockchain Utilities
-
-```dart
-// Convert Ether to Wei
-final ethWei = BlockchainUtils.etherToWei(0.1); // "100000000000000000"
-
-// Validate hex strings
-final isValid = BlockchainUtils.isValidHex('0x123abc'); // true
-
-// Pad hex strings
-final padded = BlockchainUtils.padHex('0x123', 8); // "00000123"
-```
-
-## Supported Networks and Tokens
-
-### Networks
-- Ethereum Mainnet (Chain ID: 1)
-- Binance Smart Chain (Chain ID: 56)
-- Polygon (Chain ID: 137)
-- Avalanche (Chain ID: 43114)
-- Arbitrum (Chain ID: 42161)
-- Optimism (Chain ID: 10)
-
-### Common Token Contracts
-```dart
-// Ethereum
-TokenContracts.usdtEthereum  // USDT
-TokenContracts.usdcEthereum  // USDC
-TokenContracts.daiEthereum   // DAI
-
-// Binance Smart Chain
-TokenContracts.usdtBsc       // USDT
-TokenContracts.usdcBsc       // USDC
-TokenContracts.busdBsc       // BUSD
-
-// Polygon
-TokenContracts.usdtPolygon   // USDT
-TokenContracts.usdcPolygon   // USDC
-TokenContracts.daiPolygon    // DAI
-```
-
-## Error Handling
-
-The library provides comprehensive error handling with custom exception types:
-
-```dart
-try {
-  final mnemonic = wallet.createMnemonic();
-  final privateKey = wallet.deriveEthereumPrivateKey(mnemonic);
-  final signedTx = wallet.signErc20Transfer(/* parameters */);
-} on MnemonicException catch (e) {
-  print('Mnemonic error: ${e.message}');
-} on PrivateKeyException catch (e) {
-  print('Private key error: ${e.message}');
-} on SigningException catch (e) {
-  print('Signing error: ${e.message}');
-} on ValidationException catch (e) {
-  print('Validation error: ${e.message}');
-} catch (e) {
-  print('General error: $e');
-}
+# Run container
+docker run -p 8000:8000 --env-file .env usdt-balance-api
 ```
 
 ## Testing
 
-Run the comprehensive test suite:
+### Run Test Suite
 
 ```bash
-flutter test
+# Start the API server first
+python run.py
+
+# In another terminal, run tests
+python test_api.py
 ```
 
-The test suite covers:
-- Mnemonic creation and validation
-- Private key derivation
-- Address generation
-- Transaction signing
-- Error handling
-- Utility functions
+### Manual Testing
 
-## Security Considerations
+1. **Visit the interactive documentation:**
+   - Swagger UI: http://localhost:8000/docs
+   - ReDoc: http://localhost:8000/redoc
 
-1. **Private Key Storage**: Never store private keys in plaintext. Use secure storage solutions like:
-   - Android: Android Keystore
-   - iOS: iOS Keychain
-   - Desktop: Secure storage libraries
+2. **Test with sample addresses:**
+   - Ethereum: `0x742d35Cc6634C0532925a3b8D3A9B4C0A7e6d82b`
+   - Tron: `TRX9rKKSGdyWS11jGPGJPw7G2HVpwfcNTL`
+   - Solana: `11111111111111111111111111111112`
 
-2. **Mnemonic Backup**: Encourage users to securely backup their mnemonic phrases offline
+## Error Handling
 
-3. **Network Security**: Always use HTTPS when communicating with blockchain nodes
+The API provides comprehensive error handling:
 
-4. **Validation**: Always validate addresses and amounts before signing transactions
+- **400 Bad Request**: Invalid address format or empty address
+- **502 Bad Gateway**: All blockchain RPC services are unavailable
+- **500 Internal Server Error**: Unexpected server errors
+- **503 Service Unavailable**: Blockchain clients not initialized
 
-5. **Gas Estimation**: Implement proper gas estimation to avoid failed transactions
+Individual chain failures are handled gracefully:
+- If one chain fails, results from other chains are still returned
+- Failed chains are logged but don't affect the overall response
+- Only when ALL chains fail does the API return 502
 
-## Platform Notes
+## Monitoring
 
-### Android
-- Minimum SDK version: 21
-- Target SDK version: 33+
-- Ensure proper ProGuard rules if using code obfuscation
+### Health Checks
 
-### iOS
-- Minimum deployment target: iOS 12.0
-- Ensure proper code signing for the Trust Wallet Core framework
+```bash
+# Basic API health
+curl http://localhost:8000/health
 
-### Desktop
-- Tested on Windows 10+, macOS 10.14+, Ubuntu 18.04+
-- May require additional system dependencies
+# Blockchain client health
+curl http://localhost:8000/balances/health
+
+# Service metrics
+curl http://localhost:8000/metrics
+```
+
+### Logging
+
+Logs are written to both console and file (`app.log`):
+- Request/response logging
+- RPC error logging
+- Performance metrics
+- Client connection status
+
+## Architecture
+
+### Project Structure
+
+```
+usdt-balance-api/
+├── app/
+│   ├── __init__.py          # Package initialization
+│   ├── main.py              # FastAPI application
+│   ├── models.py            # Pydantic models
+│   ├── clients.py           # Blockchain clients
+│   ├── dependencies.py      # Dependency injection
+│   └── router.py            # API routes
+├── requirements.txt         # Dependencies
+├── .env.example            # Environment template
+├── Dockerfile              # Container configuration
+├── run.py                  # Startup script
+├── test_api.py             # Test suite
+└── README.md               # This file
+```
+
+### Key Components
+
+1. **Models** (`models.py`): Pydantic models for request/response validation
+2. **Clients** (`clients.py`): Blockchain client implementations with retry logic
+3. **Dependencies** (`dependencies.py`): Dependency injection configuration
+4. **Router** (`router.py`): API endpoint implementations
+5. **Main** (`main.py`): FastAPI application setup and middleware
+
+## Performance
+
+### Concurrent Requests
+
+The API handles concurrent requests efficiently:
+- Blockchain queries are executed in parallel
+- Connection pooling for RPC clients
+- Automatic retry with exponential backoff
+- Request timeouts and circuit breakers
+
+### Caching
+
+For production deployment, consider adding:
+- Redis caching for balance results
+- Rate limiting per client
+- Connection pooling optimization
+
+## Security
+
+### Production Considerations
+
+1. **Environment Variables**: Never commit API keys to version control
+2. **HTTPS**: Always use HTTPS in production
+3. **Rate Limiting**: Implement rate limiting for public APIs
+4. **Input Validation**: All inputs are validated and sanitized
+5. **Error Handling**: Errors don't expose sensitive information
+
+### Network Security
+
+- Supports trusted host middleware
+- CORS configuration for cross-origin requests
+- Request timeout limits
+- Input sanitization and validation
+
+## Deployment
+
+### Production Deployment
+
+1. **Environment Setup:**
+```bash
+# Production environment file
+cp .env.example .env.production
+# Configure with production values
+```
+
+2. **Docker Deployment:**
+```bash
+docker build -t usdt-balance-api .
+docker run -p 8000:8000 --env-file .env.production usdt-balance-api
+```
+
+3. **Kubernetes Deployment:**
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: usdt-balance-api
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: usdt-balance-api
+  template:
+    metadata:
+      labels:
+        app: usdt-balance-api
+    spec:
+      containers:
+      - name: api
+        image: usdt-balance-api:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: ETHEREUM_RPC_ENDPOINT
+          valueFrom:
+            secretKeyRef:
+              name: api-secrets
+              key: ethereum-rpc-endpoint
+```
+
+### Load Balancing
+
+For high availability:
+- Use multiple API instances behind a load balancer
+- Implement health checks for automatic failover
+- Configure appropriate timeouts and retries
+
+## Troubleshooting
+
+### Common Issues
+
+1. **RPC Connection Errors:**
+   - Check API keys in `.env` file
+   - Verify network connectivity
+   - Check rate limits on RPC providers
+
+2. **Invalid Address Errors:**
+   - Ensure address format matches the chain
+   - Check for typos in address strings
+
+3. **Timeout Errors:**
+   - Increase `RPC_TIMEOUT` in configuration
+   - Check RPC provider status
+
+### Debug Mode
+
+```bash
+# Enable debug logging
+python run.py --log-level debug
+
+# Check client connections
+curl http://localhost:8000/balances/health
+```
 
 ## Contributing
 
@@ -319,28 +416,16 @@ The test suite covers:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Changelog
-
-### Version 1.0.0
-- Initial release
-- BIP-39 mnemonic support
-- HD wallet key derivation
-- Ethereum address generation
-- ERC-20 token signing
-- Cross-platform support
-- Comprehensive test suite
+This project is licensed under the MIT License. See LICENSE file for details.
 
 ## Support
 
 For issues and questions:
-1. Check the [GitHub Issues](https://github.com/example/trust-wallet-flutter/issues)
-2. Review the [Trust Wallet Core Documentation](https://developer.trustwallet.com/wallet-core)
-3. Submit a new issue with detailed reproduction steps
+- Check the API documentation at `/docs`
+- Review the logs for error details
+- Open an issue on GitHub
+- Check RPC provider documentation
 
-## Acknowledgments
+---
 
-- [Trust Wallet Core](https://github.com/trustwallet/wallet-core) - The underlying cryptographic library
-- [Flutter](https://flutter.dev/) - The UI toolkit
-- [Dart FFI](https://dart.dev/guides/libraries/c-interop) - For native library integration
+**Built with ❤️ by Senior Backend Engineer**
