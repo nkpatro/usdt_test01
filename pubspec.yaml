@@ -1,0 +1,28 @@
+name: trust_wallet_flutter
+description: A Flutter wrapper for Trust Wallet Core with Ethereum and ERC-20 support
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  ffi: ^2.0.2
+  path: ^1.8.3
+  hex: ^0.2.0
+  crypto: ^3.0.3
+  convert: ^3.1.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+  
+  # Include the Trust Wallet Core native library
+  assets:
+    - assets/
