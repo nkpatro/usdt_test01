@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Crypto Wallet</string>
+    
+    <!-- Navigation -->
+    <string name="nav_home">Home</string>
+    <string name="nav_portfolio">Portfolio</string>
+    <string name="nav_market">Market</string>
+    <string name="nav_settings">Settings</string>
+    
+    <!-- Common Actions -->
+    <string name="action_send">Send</string>
+    <string name="action_receive">Receive</string>
+    <string name="action_swap">Swap</string>
+    <string name="action_back">Back</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_confirm">Confirm</string>
+    <string name="action_retry">Retry</string>
+    
+    <!-- Onboarding -->
+    <string name="welcome_title">Welcome to Crypto Wallet</string>
+    <string name="welcome_subtitle">Secure, multi-asset crypto wallet supporting Bitcoin, Ethereum, Solana, and many more cryptocurrencies.</string>
+    <string name="create_new_wallet">Create New Wallet</string>
+    <string name="import_existing_wallet">Import Existing Wallet</string>
+    
+    <!-- Authentication -->
+    <string name="auth_required_title">Authentication Required</string>
+    <string name="auth_pin">Authenticate with PIN</string>
+    <string name="auth_biometric">Use Biometric</string>
+    
+    <!-- Portfolio -->
+    <string name="total_portfolio_value">Total Portfolio Value</string>
+    <string name="your_assets">Your Assets</string>
+    
+    <!-- Errors -->
+    <string name="error_network">Network error. Please check your connection.</string>
+    <string name="error_generic">Something went wrong. Please try again.</string>
+    <string name="error_wallet_not_found">Wallet not found</string>
+    
+    <!-- Loading -->
+    <string name="loading">Loading...</string>
+    
+    <!-- Permissions -->
+    <string name="permission_camera_required">Camera permission is required for QR code scanning</string>
+    <string name="permission_biometric_required">Biometric permission is required for biometric authentication</string>
+</resources>
